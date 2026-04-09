@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title> 个人信息卡片 </title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #e0e7ff 0%, #c4d2f0 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Poppins', 'Roboto', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+            padding: 1.5rem;
+            transition: background 0.4s ease;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 主题背景适配 */
+        body.spring-bg { background: linear-gradient(145deg, #e8f5e9 0%, #c8e6d9 100%); }
+        body.summer-bg { background: linear-gradient(145deg, #fff3e0 0%, #ffe0b5 100%); }
+        body.autumn-bg { background: linear-gradient(145deg, #ffefdb 0%, #f7d9b5 100%); }
+        body.winter-bg { background: linear-gradient(145deg, #e2f0ff 0%, #d4e4fa 100%); }
+        body.christmas-bg { background: linear-gradient(145deg, #d4f1f9 0%, #bde0fe 100%); }
+        body.spring-festival-bg { background: linear-gradient(145deg, #ffecdc 0%, #ffe0b3 100%); }
+
+        /* ========= 漂浮文案容器 ========= */
+        .floating-quotes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .floating-word {
+            position: absolute;
+            font-weight: 800;
+            white-space: nowrap;
+            opacity: 0;
+            animation: floatWord 18s infinite ease-in-out;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+            letter-spacing: 1px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+            font-family: 'Segoe UI', 'Poppins', 'KaiTi', cursive;
+        }
+
+        .floating-word:nth-child(1) { background: linear-gradient(135deg, #ff6b6b, #ffb347); background-clip: text; -webkit-background-clip: text; color: transparent; font-style: italic; }
+        .floating-word:nth-child(2) { background: linear-gradient(135deg, #4ecdc4, #44a08d); background-clip: text; -webkit-background-clip: text; color: transparent; font-weight: 900; }
+        .floating-word:nth-child(3) { background: linear-gradient(135deg, #ff9a8b, #ff6a88); background-clip: text; -webkit-background-clip: text; color: transparent; transform: rotate(-2deg); }
+        .floating-word:nth-child(4) { background: linear-gradient(135deg, #fbc2eb, #a6c1ee); background-clip: text; -webkit-background-clip: text; color: transparent; font-style: oblique; }
+        .floating-word:nth-child(5) { background: linear-gradient(135deg, #f6d365, #fda085); background-clip: text; -webkit-background-clip: text; color: transparent; font-weight: bold; }
+        .floating-word:nth-child(6) { background: linear-gradient(135deg, #c3cfe2, #f5b7b1); background-clip: text; -webkit-background-clip: text; color: transparent; }
+        .floating-word:nth-child(7) { background: linear-gradient(135deg, #fa709a, #fee140); background-clip: text; -webkit-background-clip: text; color: transparent; }
+        .floating-word:nth-child(8) { background: linear-gradient(135deg, #30cfd0, #330867); background-clip: text; -webkit-background-clip: text; color: transparent; font-weight: 800; }
+
+        @keyframes floatWord {
+            0% {
+                transform: translateX(-20px) translateY(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.7;
+            }
+            30% {
+                opacity: 0.9;
+            }
+            70% {
+                opacity: 0.8;
+            }
+            90% {
+                opacity: 0.3;
+            }
+            100% {
+                transform: translateX(calc(100vw + 100px)) translateY(40px) rotate(5deg);
+                opacity: 0;
+            }
+        }
+
+        .floating-word:nth-child(1) { top: 8%; left: -150px; animation-duration: 22s; animation-delay: 0s; font-size: 1.6rem; }
+        .floating-word:nth-child(2) { top: 20%; left: -180px; animation-duration: 19s; animation-delay: 2s; font-size: 1.8rem; }
+        .floating-word:nth-child(3) { top: 45%; left: -120px; animation-duration: 25s; animation-delay: 5s; font-size: 2rem; }
+        .floating-word:nth-child(4) { top: 65%; left: -200px; animation-duration: 21s; animation-delay: 8s; font-size: 1.7rem; }
+        .floating-word:nth-child(5) { top: 82%; left: -160px; animation-duration: 23s; animation-delay: 11s; font-size: 1.9rem; }
+        .floating-word:nth-child(6) { top: 12%; left: -220px; animation-duration: 20s; animation-delay: 14s; font-size: 1.5rem; }
+        .floating-word:nth-child(7) { top: 55%; left: -140px; animation-duration: 24s; animation-delay: 17s; font-size: 1.8rem; }
+        .floating-word:nth-child(8) { top: 75%; left: -190px; animation-duration: 26s; animation-delay: 3s; font-size: 2rem; }
+
+        /* 卡片样式 */
+        .card {
+            max-width: 600px;
+            width: 100%;
+            border-radius: 2.2rem;
+            box-shadow: 0 30px 50px -20px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            position: relative;
+            z-index: 20;
+            backdrop-filter: blur(2px);
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 35px 55px -18px rgba(0, 0, 0, 0.45);
+        }
+
+        .card-inner {
+            padding: 2rem 2rem 2rem 2rem;
+            transition: background 0.3s ease, color 0.2s;
+        }
+
+        .card-title {
+            font-size: 1.9rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.3px;
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        /* 头像区域 */
+        .avatar-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .avatar-wrapper {
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid rgba(255, 255, 255, 0.9);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+            background-color: #f5f5f5;
+            transition: transform 0.25s, filter 0.2s;
+        }
+
+        .avatar-wrapper:hover .avatar {
+            transform: scale(0.98);
+            filter: brightness(0.95);
+        }
+
+        .upload-overlay {
+            position: absolute;
+            bottom: 6px;
+            right: 6px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            border-radius: 40px;
+            padding: 6px 10px;
+            font-size: 0.7rem;
+            color: white;
+            font-weight: 500;
+            pointer-events: none;
+        }
+
+        #avatarUpload {
+            display: none;
+        }
+
+        /* 信息字段 */
+        .info-field {
+            margin-bottom: 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .field-label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            opacity: 0.85;
+        }
+
+        .editable-input, .editable-textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            font-size: 1rem;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 1.2rem;
+            background: rgba(255, 255, 255, 0.9);
+            font-family: inherit;
+            transition: all 0.2s;
+            outline: none;
+            font-weight: 500;
+        }
+
+        .editable-input:focus, .editable-textarea:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            background: white;
+        }
+
+        .mbti-select {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            font-size: 1rem;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 1.2rem;
+            background: rgba(255, 255, 255, 0.9);
+            font-family: inherit;
+            font-weight: 500;
+            transition: all 0.2s;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .mbti-select:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            background: white;
+        }
+
+        .mbti-hint {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .github-link-field {
+            margin-bottom: 1.3rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .github-input-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .github-input {
+            flex: 3;
+            padding: 0.8rem 1rem;
+            font-size: 1rem;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 1.2rem;
+            background: rgba(255, 255, 255, 0.9);
+            font-family: inherit;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .github-input:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .github-preview {
+            flex: 2;
+            padding: 0.8rem 1rem;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 1.2rem;
+            font-size: 0.85rem;
+            word-break: break-all;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .github-preview a {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .github-preview a:hover {
+            text-decoration: underline;
+        }
+
+        .save-btn {
+            width: 100%;
+            border: none;
+            padding: 0.85rem;
+            border-radius: 2.5rem;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.25s;
+            margin-top: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 8px 16px rgba(59, 130, 246, 0.25);
+        }
+
+        .save-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 12px 22px rgba(59, 130, 246, 0.35);
+        }
+
+        .save-btn:active {
+            transform: scale(0.98);
+        }
+
+        .theme-panel {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            padding: 12px 16px;
+            border-radius: 48px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .theme-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 60px;
+            border: none;
+            cursor: pointer;
+            font-size: 1.3rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            background: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.12);
+            box-shadow: 0 5px 12px rgba(0,0,0,0.2);
+        }
+
+        .theme-btn.active {
+            transform: scale(1.05);
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px #3b82f6;
+        }
+
+        .toast-msg {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) scale(0.9);
+            background: #1f2937;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            opacity: 0;
+            transition: opacity 0.2s, transform 0.2s;
+            pointer-events: none;
+            z-index: 1100;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .toast-msg.show {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+        }
+
+        @media (max-width: 640px) {
+            .card-inner { padding: 1.5rem; }
+            .avatar { width: 100px; height: 100px; }
+            .theme-panel { bottom: 16px; right: 16px; padding: 8px 12px; gap: 8px; }
+            .theme-btn { width: 36px; height: 36px; font-size: 1rem; }
+            .github-input-group { flex-direction: column; gap: 8px; }
+            .github-input, .github-preview { width: 100%; }
+            .toast-msg { white-space: nowrap; font-size: 0.75rem; bottom: 80px; }
+            .floating-word { font-size: 1.2rem !important; }
+        }
+
+        @keyframes gentlePop {
+            0% { transform: scale(0.96); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .card { animation: gentlePop 0.4s ease-out; }
+    </style>
+</head>
+<body class="spring-bg">
+
+    <div class="floating-quotes">
+        <div class="floating-word">✨ 与其向往 不如出发 ✨</div>
+        <div class="floating-word">🌸 喜乐万事宜 自在恰如风 🌸</div>
+        <div class="floating-word">⭐ 追光的人 终会光芒万丈 ⭐</div>
+        <div class="floating-word">🌈 心怀浪漫宇宙 也珍惜人间日常 🌈</div>
+        <div class="floating-word">🍃 保持热爱 奔赴山海 🍃</div>
+        <div class="floating-word">💫 行而不辍 未来可期 💫</div>
+        <div class="floating-word">🎨 做自己的太阳 无需凭借谁的光 🎨</div>
+        <div class="floating-word">🌟 凡是过往 皆为序章 🌟</div>
+    </div>
+
+    <div class="card" id="personalCard">
+        <div class="card-inner" id="cardInner">
+            <h1 class="card-title" id="cardTitle">📇 个人信息卡片</h1>
+
+            <div class="avatar-section">
+                <div class="avatar-wrapper" id="avatarWrapper">
+                    <img class="avatar" id="avatarImg" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Sunny&backgroundColor=FFD966" alt="头像">
+                    <span class="upload-overlay">📷 点我</span>
+                </div>
+                <input type="file" id="avatarUpload" accept="image/jpeg,image/png,image/webp,image/jpg">
+                <p style="font-size: 0.7rem; margin-top: 8px; opacity: 0.7;">点击头像更换照片</p>
+            </div>
+
+            <div class="info-field">
+                <div class="field-label">✨ 姓名</div>
+                <input type="text" id="nameInput" class="editable-input" placeholder="请输入姓名" maxlength="30">
+            </div>
+
+            <div class="info-field">
+                <div class="field-label">📖 个人简介</div>
+                <textarea id="bioInput" rows="2" class="editable-textarea" placeholder="介绍一下你自己..." maxlength="150"></textarea>
+            </div>
+
+            <div class="info-field">
+                <div class="field-label">🧠 MBTI · 人格属性</div>
+                <select id="mbtiSelect" class="mbti-select">
+                    <option value="">✨ 请选择MBTI类型</option>
+                    <option value="INTJ">INTJ - 建筑师</option>
+                    <option value="INTP">INTP - 逻辑学家</option>
+                    <option value="ENTJ">ENTJ - 指挥官</option>
+                    <option value="ENTP">ENTP - 辩论家</option>
+                    <option value="INFJ">INFJ - 提倡者</option>
+                    <option value="INFP">INFP - 调停者</option>
+                    <option value="ENFJ">ENFJ - 主人公</option>
+                    <option value="ENFP">ENFP - 竞选者</option>
+                    <option value="ISTJ">ISTJ - 物流师</option>
+                    <option value="ISFJ">ISFJ - 守护者</option>
+                    <option value="ESTJ">ESTJ - 总经理</option>
+                    <option value="ESFJ">ESFJ - 执政官</option>
+                    <option value="ISTP">ISTP - 鉴赏家</option>
+                    <option value="ISFP">ISFP - 探险家</option>
+                    <option value="ESTP">ESTP - 企业家</option>
+                    <option value="ESFP">ESFP - 表演者</option>
+                </select>
+                <div class="mbti-hint">💡 16种人格类型可选，选择后点击保存</div>
+            </div>
+
+            <div class="github-link-field">
+                <div class="field-label">🐙 GitHub · 个人主页</div>
+                <div class="github-input-group">
+                    <input type="text" id="githubInput" class="github-input" placeholder="输入 GitHub 用户名 或 完整链接" value="">
+                    <div class="github-preview" id="githubPreview">
+                        <span>🔗 预览: </span>
+                        <a href="#" id="githubLink" target="_blank" rel="noopener noreferrer">未设置</a>
+                    </div>
+                </div>
+                <div class="mbti-hint">💡 支持用户名 (如: yaxin-du) 或完整链接</div>
+            </div>
+
+            <div class="info-field">
+                <div class="field-label">💻 软件技能</div>
+                <textarea id="skillsInput" rows="2" class="editable-textarea" placeholder="如：Python、JavaScript、Vue.js、MySQL..." maxlength="150"></textarea>
+            </div>
+
+            <div class="info-field">
+                <div class="field-label">🎯 兴趣爱好</div>
+                <textarea id="hobbyInput" rows="2" class="editable-textarea" placeholder="如：阅读、跑步、摄影、音乐..." maxlength="150"></textarea>
+            </div>
+
+            <button class="save-btn" id="saveBtn">💾 保存修改</button>
+        </div>
+    </div>
+
+    <div class="theme-panel" id="themePanel">
+        <button class="theme-btn" data-theme="spring" title="春·盎然">🌸</button>
+        <button class="theme-btn" data-theme="summer" title="夏·热烈">☀️</button>
+        <button class="theme-btn" data-theme="autumn" title="秋·丰收">🍂</button>
+        <button class="theme-btn" data-theme="winter" title="冬·静谧">❄️</button>
+        <button class="theme-btn" data-theme="christmas" title="圣诞·欢悦">🎄</button>
+        <button class="theme-btn" data-theme="spring-festival" title="春节·喜庆">🧧</button>
+    </div>
+
+    <div id="toastMsg" class="toast-msg">✨ 已更新</div>
+
+    <script>
+        (function() {
+            // DOM 元素
+            const avatarImg = document.getElementById('avatarImg');
+            const avatarUpload = document.getElementById('avatarUpload');
+            const avatarWrapper = document.getElementById('avatarWrapper');
+            const nameInput = document.getElementById('nameInput');
+            const bioInput = document.getElementById('bioInput');
+            const mbtiSelect = document.getElementById('mbtiSelect');
+            const githubInput = document.getElementById('githubInput');
+            const githubLink = document.getElementById('githubLink');
+            const skillsInput = document.getElementById('skillsInput');
+            const hobbyInput = document.getElementById('hobbyInput');
+            const saveBtn = document.getElementById('saveBtn');
+            const toastMsg = document.getElementById('toastMsg');
+            const cardInner = document.getElementById('cardInner');
+            const cardTitleEl = document.getElementById('cardTitle');
+            
+            // ========== 数据持久化功能 ==========
+            // 保存所有数据到 localStorage
+            function saveAllData() {
+                const userData = {
+                    name: nameInput.value.trim(),
+                    bio: bioInput.value.trim(),
+                    mbti: mbtiSelect.value,
+                    github: githubInput.value.trim(),
+                    avatar: avatarImg.src,
+                    skills: skillsInput.value.trim(),
+                    hobby: hobbyInput.value.trim(),
+                    theme: currentTheme
+                };
+                localStorage.setItem('userCardData', JSON.stringify(userData));
+                console.log('数据已保存到本地');
+            }
+            
+            // 从 localStorage 加载数据
+            function loadAllData() {
+                const savedData = localStorage.getItem('userCardData');
+                if (savedData) {
+                    try {
+                        const userData = JSON.parse(savedData);
+                        
+                        // 恢复姓名
+                        if (userData.name) {
+                            nameInput.value = userData.name;
+                        }
+                        
+                        // 恢复简介
+                        if (userData.bio) {
+                            bioInput.value = userData.bio;
+                        }
+                        
+                        // 恢复 MBTI
+                        if (userData.mbti) {
+                            mbtiSelect.value = userData.mbti;
+                        }
+                        
+                        // 恢复 GitHub
+                        if (userData.github) {
+                            githubInput.value = userData.github;
+                            updateGithubPreview();
+                        }
+                        
+                        // 恢复头像
+                        if (userData.avatar && userData.avatar !== avatarImg.src) {
+                            avatarImg.src = userData.avatar;
+                        }
+                        
+                        // 恢复软件技能
+                        if (userData.skills) {
+                            skillsInput.value = userData.skills;
+                        }
+                        
+                        // 恢复兴趣爱好
+                        if (userData.hobby) {
+                            hobbyInput.value = userData.hobby;
+                        }
+                        
+                        // 恢复主题
+                        if (userData.theme && themes[userData.theme]) {
+                            applyTheme(userData.theme);
+                        }
+                        
+                        showToast("📀 已加载上次保存的数据", 2000);
+                        return true;
+                    } catch (e) {
+                        console.error('加载数据失败:', e);
+                    }
+                }
+                return false;
+            }
+            
+            // 更新GitHub预览链接
+            function updateGithubPreview() {
+                let inputVal = githubInput.value.trim();
+                let githubUrl = "";
+                let displayText = "";
+                
+                if (inputVal === "") {
+                    githubLink.href = "#";
+                    githubLink.innerText = "未设置";
+                    githubLink.style.color = "#9ca3af";
+                    return;
+                }
+                
+                if (inputVal.startsWith("http://") || inputVal.startsWith("https://")) {
+                    githubUrl = inputVal;
+                    const match = inputVal.match(/github\.com\/([^\/?#]+)/);
+                    if (match) {
+                        displayText = match[1];
+                    } else {
+                        displayText = inputVal.length > 30 ? inputVal.substring(0, 30) + "..." : inputVal;
+                    }
+                } else {
+                    githubUrl = `https://github.com/${inputVal}`;
+                    displayText = inputVal;
+                }
+                
+                githubLink.href = githubUrl;
+                githubLink.innerText = displayText;
+                githubLink.style.color = "#3b82f6";
+                githubLink.target = "_blank";
+                githubLink.rel = "noopener noreferrer";
+            }
+            
+            let toastTimeout = null;
+            function showToast(message, duration = 1800) {
+                if (toastTimeout) clearTimeout(toastTimeout);
+                toastMsg.innerText = message;
+                toastMsg.classList.add('show');
+                toastTimeout = setTimeout(() => {
+                    toastMsg.classList.remove('show');
+                }, duration);
+            }
+            
+            // 保存功能（同时保存到 localStorage）
+            function handleSave() {
+                let newName = nameInput.value.trim();
+                if (newName === "") {
+                    newName = "未命名";
+                    nameInput.value = newName;
+                }
+                let newBio = bioInput.value.trim();
+                if (newBio === "") {
+                    newBio = "✨ 这个人很懒，还没有写简介～";
+                    bioInput.value = newBio;
+                }
+                
+                let newSkills = skillsInput.value.trim();
+                if (newSkills === "") {
+                    newSkills = "未填写";
+                }
+                
+                let newHobby = hobbyInput.value.trim();
+                if (newHobby === "") {
+                    newHobby = "未填写";
+                }
+                
+                let finalMbti = mbtiSelect.value;
+                if (finalMbti === "") {
+                    finalMbti = "未选择";
+                }
+                
+                const githubVal = githubInput.value.trim();
+                let githubMsg = githubVal ? (githubVal.startsWith("http") ? "链接已保存" : `@${githubVal} 已保存`) : "未设置GitHub";
+                
+                // 保存所有数据到 localStorage
+                saveAllData();
+                
+                showToast(`✅ 已保存！刷新页面数据不会丢失 · 姓名：${newName}  | MBTI：${finalMbti}`, 2500);
+                
+                const card = document.querySelector('.card');
+                card.style.transform = 'scale(0.99)';
+                setTimeout(() => { card.style.transform = ''; }, 150);
+            }
+            
+            // 头像上传
+            function handleAvatarUpload(file) {
+                if (!file) return;
+                const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+                if (!allowed.includes(file.type)) {
+                    showToast("❌ 仅支持 JPG/PNG/WEBP 格式", 1500);
+                    return;
+                }
+                if (file.size > 3 * 1024 * 1024) {
+                    showToast("⚠️ 图片大小需小于 3MB", 1500);
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    avatarImg.src = e.target.result;
+                    // 头像更新后立即保存
+                    saveAllData();
+                    showToast("🖼️ 头像已更新，已自动保存", 1200);
+                };
+                reader.onerror = () => showToast("读取失败", 1000);
+                reader.readAsDataURL(file);
+            }
+            
+            avatarWrapper.addEventListener('click', () => avatarUpload.click());
+            avatarUpload.addEventListener('change', (e) => {
+                if (e.target.files[0]) handleAvatarUpload(e.target.files[0]);
+                avatarUpload.value = '';
+            });
+            
+            githubInput.addEventListener('input', updateGithubPreview);
+            
+            // 主题切换
+            const themes = {
+                spring: { cardBg: "linear-gradient(135deg, #FFF7ED 0%, #FEF3E2 100%)", titleColor: "#2b5e2b", fieldLabelColor: "#527a3b", inputBg: "rgba(255, 248, 225, 0.9)", borderGlow: "#b0d9b1", bodyClass: "spring-bg", btnGradient: "linear-gradient(105deg, #88b04b, #6a9c3e)" },
+                summer: { cardBg: "linear-gradient(135deg, #FFF3E0 0%, #FFE4B5 100%)", titleColor: "#c95a0f", fieldLabelColor: "#c97e2a", inputBg: "#FFF7E8", borderGlow: "#ffb347", bodyClass: "summer-bg", btnGradient: "linear-gradient(105deg, #f9a825, #ff9800)" },
+                autumn: { cardBg: "linear-gradient(135deg, #FCE9D8 0%, #F5D5B3 100%)", titleColor: "#a55117", fieldLabelColor: "#b1622c", inputBg: "#FFF3E6", borderGlow: "#e09d5e", bodyClass: "autumn-bg", btnGradient: "linear-gradient(105deg, #d68c45, #c97e3a)" },
+                winter: { cardBg: "linear-gradient(135deg, #EFF6FF 0%, #E2EAF9 100%)", titleColor: "#2c5f8a", fieldLabelColor: "#3f7e9c", inputBg: "#FFFFFFE6", borderGlow: "#9ac2e0", bodyClass: "winter-bg", btnGradient: "linear-gradient(105deg, #5c9bd5, #3b82f6)" },
+                christmas: { cardBg: "linear-gradient(135deg, #E8F5E9 0%, #D4EED7 100%)", titleColor: "#b13e3e", fieldLabelColor: "#2f6b2f", inputBg: "#FFF5F0", borderGlow: "#b83b3b", bodyClass: "christmas-bg", btnGradient: "linear-gradient(105deg, #dc4c4c, #b93b3b)" },
+                "spring-festival": { cardBg: "linear-gradient(135deg, #FFF1E6 0%, #FFE0B5 100%)", titleColor: "#bc4742", fieldLabelColor: "#b4582c", inputBg: "#FFF9F0", borderGlow: "#e0843a", bodyClass: "spring-festival-bg", btnGradient: "linear-gradient(105deg, #e68a2e, #d95b2a)" }
+            };
+            
+            let currentTheme = "spring";
+            
+            function applyTheme(themeKey) {
+                const theme = themes[themeKey];
+                if (!theme) return;
+                currentTheme = themeKey;
+                cardInner.style.background = theme.cardBg;
+                cardTitleEl.style.color = theme.titleColor;
+                document.querySelectorAll('.field-label').forEach(lbl => lbl.style.color = theme.fieldLabelColor);
+                document.querySelectorAll('.editable-input, .editable-textarea, .mbti-select, .github-input').forEach(inp => {
+                    inp.style.background = theme.inputBg;
+                    inp.style.borderColor = theme.borderGlow;
+                });
+                document.getElementById('saveBtn').style.background = theme.btnGradient;
+                document.body.className = '';
+                document.body.classList.add(theme.bodyClass);
+                document.querySelectorAll('.theme-btn').forEach(btn => {
+                    if (btn.getAttribute('data-theme') === themeKey) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                });
+                // 主题切换后保存
+                saveAllData();
+                showToast(`🎨 主题切换至 ${getThemeName(themeKey)}`, 1000);
+            }
+            
+            function getThemeName(key) {
+                const map = { spring: "春·盎然", summer: "夏·热烈", autumn: "秋·丰收", winter: "冬·静谧", christmas: "圣诞·欢悦", "spring-festival": "春节·喜庆" };
+                return map[key] || key;
+            }
+            
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.addEventListener('click', () => { if(btn.getAttribute('data-theme')) applyTheme(btn.getAttribute('data-theme')); });
+            });
+            
+            // 快捷键保存
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); handleSave(); }
+            });
+            
+            saveBtn.addEventListener('click', handleSave);
+            nameInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleSave(); });
+            
+            // 页面关闭前自动保存
+            window.addEventListener('beforeunload', () => {
+                saveAllData();
+            });
+            
+            // 初始化：先加载保存的数据，如果没有则使用默认主题
+            const hasLoaded = loadAllData();
+            if (!hasLoaded) {
+                applyTheme('spring');
+            }
+            
+            // 确保 GitHub 预览更新
+            updateGithubPreview();
+            
+            setTimeout(() => {
+                showToast("✨ 所有修改都会自动保存！刷新页面数据不丢失 ✨", 3500);
+            }, 500);
+        })();
+    </script>
+</body>
+</html>
